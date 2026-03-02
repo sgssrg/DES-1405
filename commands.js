@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.dev";
+dotenv.config({ path: envFile });
 
 import { ApplicationCommandOptionType, REST, Routes } from "discord.js";
 
@@ -72,6 +74,25 @@ const commands = [
   {
     name: "del-dice",
     description: "Deletes the current Dice Prediction game!",
+  },
+  {
+    name: "help",
+    description: "Shows help information!",
+    options: [
+      {
+        name: "with",
+        description: "Choose a category to get help on",
+        type: ApplicationCommandOptionType.Integer,
+        required: true,
+        choices: [
+          { name: "General Commands", value: 1 },
+          { name: "Rock Paper Scissors Commands", value: 2 },
+          { name: "Dice Prediction Commands", value: 3 },
+          { name: "Bear Trap Commands", value: 4 },
+          { name: "Translation Commands", value: 5 },
+        ],
+      },
+    ],
   },
 ];
 

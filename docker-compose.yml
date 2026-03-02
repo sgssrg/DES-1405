@@ -14,15 +14,14 @@ services:
       - BT_CHANNEL=${BT_CHANNEL}
       - DICE_CHANNEL=${DICE_CHANNEL}
     restart: unless-stopped
+    networks:
+      - connected
     depends_on:
       - libretranslate
   libretranslate:
     container_name: libretranslate
     image: libretranslate/libretranslate:latest
-    ports:
-      - "5000:5000"
     restart: unless-stopped
-
     environment:
       - LT_PORT=5000
       - LT_DEFAULT_TO=en
@@ -43,7 +42,20 @@ services:
       start_period: 5s
     volumes:
       - lt-local:/home/libretranslate/.local
+    networks:
+      - connected
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
 volumes:
   lt-local:
     external: true
+networks:
+  connected:
+    driver: bridge
