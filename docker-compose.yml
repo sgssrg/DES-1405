@@ -21,9 +21,8 @@ services:
   libretranslate:
     container_name: libretranslate
     image: libretranslate/libretranslate:latest
-    restart: unless-stopped
+    restart: always
     environment:
-      - LT_PORT=5000
       - LT_DEFAULT_TO=en
       - LT_DEFAULT_FROM=auto
       - LT_UPDATE_MODELS=true

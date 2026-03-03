@@ -84,7 +84,7 @@ client.on(Events.MessageCreate, async (message) => {
             (lang) => lang.code === detectedLang.data[0].language,
           );
 
-          message.reply(
+          detectOriginalReply.reply(
             `${matchedLang.name} (${detectedLang.data[0].language}) with confidence ${detectedLang.data[0].confidence}`,
           );
         }
@@ -119,7 +119,7 @@ client.on(Events.MessageCreate, async (message) => {
             format: "text",
           });
 
-          message.reply(
+          transOriginalReply.reply(
             `${transOriginalReply.author}: "${translatedText.data.translatedText}"`,
           );
         }
@@ -134,11 +134,11 @@ client.on(Events.MessageCreate, async (message) => {
   }
 });
 client.on(Events.InteractionCreate, async (interaction) => {
-  let RPS_C = interaction.channelId === process.env.RPS_CHANNEL;
-  let BT_C = interaction.channelId === process.env.BT_CHANNEL;
-  let D_C = interaction.channelId === process.env.DICE_CHANNEL;
   try {
     if (interaction.isChatInputCommand()) {
+      let RPS_C = interaction.channelId === process.env.RPS_CHANNEL;
+      let BT_C = interaction.channelId === process.env.BT_CHANNEL;
+      let D_C = interaction.channelId === process.env.DICE_CHANNEL;
       if (interaction.commandName === "purr") {
         await interaction.reply(
           msgCatVoice[Math.floor(Math.random() * msgCatVoice.length)] + "!!!!!",
