@@ -22,6 +22,14 @@ const lt = axios.create({
   baseURL: "http://libretranslate:5000",
   headers: { "Content-Type": "application/json" },
 });
+
+const memeAPI = axios.create({
+  baseURL: "https://meme-api.com/gimme",
+});
+
+const redditAPI = axios.create({
+  baseURL: "https://www.reddit.com/r/",
+});
 // axiosRetry(client, {
 //   retries: 3, // number of retries
 //   retryDelay: (retryCount) => {
@@ -38,6 +46,9 @@ const lt = axios.create({
 let diceVal;
 let playersJoinedDice = [];
 let diceGameState = false;
+
+// Variables for meme finiding
+let subreddits = ["catmemes", "wholesomememes"];
 
 const helpTransBtns = [
   { name: "Translation Commands", value: 1 },
@@ -130,6 +141,29 @@ client.on(Events.MessageCreate, async (message) => {
           err,
         );
       }
+    }
+  }
+  if (message.content.startsWith("!set") || message.content.startsWith("!s")) {
+    let msg = message.content.split(" ");
+    let inputRedditPage = msg[2];
+    if (msg[1] === "reddit") {
+      let redditInQuestion = sanitizeSubreddit(inputRedditPage);
+
+      if (!redditInQuestion) {
+        message.channel.send("Invalid subreddit name!");
+      } else {
+        subreddits.push(inputRedditPage);
+      }
+    }
+  }
+  if (message.content.startsWith("!meme") || message.content.startsWith("!m")) {
+    try {
+      // TODO: do axios fetch for the meme
+      let memeEmbed = await fetchMeme();
+      await message.reply({ embeds: [memeEmbed] });
+    } catch (error) {
+      console.error("Error fetching meme:", error);
+      await message.reply("Error: Can't Fetch Meme From Reddit");
     }
   }
 });
@@ -569,4 +603,82 @@ function chunkArray(arr, size) {
     result.push(arr.slice(i, i + size));
   }
   return result;
+}
+
+function sanitizeSubreddit(input) {
+  const regex = /^[A-Za-z0-9_]+$/;
+  return regex.test(input) ? input : null;
+}
+
+const fetchMeme = async () => {
+  let randomSubredditChosen = encodeURIComponent(
+    subreddits[Math.floor(Math.random() * subreddits.length)],
+  );
+  console.log(subreddits);
+  console.log(randomSubredditChosen);
+  let memeResponse = await memeAPI.get(`/${randomSubredditChosen}/10`);
+  const memes = normalizeResponse(memeResponse.data);
+  const meme = pickUniqueMeme(memes);
+
+  let redditPageIconURLRequest = await redditAPI.get(
+    `${randomSubredditChosen}/about.json`,
+  );
+  let redditPageIconURLResponse = redditPageIconURLRequest.data.data;
+  let img;
+  if (redditPageIconURLResponse.community_icon) {
+    img = redditPageIconURLResponse.community_icon.replace(
+      /width=\d+/,
+      "width=128&frame=1&auto=webp",
+    );
+    img = redditPageIconURLResponse.community_icon.replace(/amp;/, "");
+    console.log(img);
+  } else {
+    img = redditPageIconURLResponse.icon_img;
+    console.log(img);
+  }
+
+  console.log({
+    title: meme.title,
+    postLink: meme.postLink,
+    img: meme.url,
+    footer: `meme from r/${randomSubredditChosen}`,
+    author: meme.author,
+  });
+  let memeEmbed = new EmbedBuilder()
+    .setTitle(meme.title || "Random Meme")
+    .setURL(meme.postLink || "https://reddit.com")
+    .setImage(meme.url)
+    .setColor(0xc9184a)
+    .setFooter({
+      text: `meme from r/${randomSubredditChosen}`,
+      iconURL: img,
+    })
+    .setAuthor({ name: meme.author || "Anonymous" })
+    .setDescription(`👍 ${meme.ups} upvotes`);
+  return memeEmbed;
+};
+// cache of postLinks you've already sent
+const recentMemes = new Set();
+function normalizeResponse(data) {
+  if (Array.isArray(data.memes)) return data.memes;
+  return [data]; // wrap single meme in an array
+}
+
+function pickUniqueMeme(memes) {
+  for (const meme of memes) {
+    if (!recentMemes.has(meme.postLink)) {
+      // mark this meme as used
+      recentMemes.add(meme.postLink);
+
+      // keep cache small (e.g. last 20 memes)
+      if (recentMemes.size > 20) {
+        const first = [...recentMemes][0];
+        recentMemes.delete(first);
+      }
+
+      return meme;
+    }
+  }
+  // fallback if all are repeats
+  return memes[0];
 }
