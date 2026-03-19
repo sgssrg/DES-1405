@@ -1,8 +1,8 @@
 FROM node:22-alpine
 WORKDIR /app
 COPY package.json ./
-RUN yarn install
+RUN pnpm install
 COPY . .
-RUN yarn run reload
+RUN pnpm run reload
 EXPOSE 3000
-CMD ["yarn", "start"]
+CMD ["pnpm", "start"]
