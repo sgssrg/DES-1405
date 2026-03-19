@@ -28,7 +28,7 @@ const memeAPI = axios.create({
 });
 
 const redditAPI = axios.create({
-  baseURL: "https://www.api.reddit.com/r/",
+  baseURL: "https://api.reddit.com/r/",
   headers: { "User-Agent": "DES-1405-Bot/1.0 (by u/anonymous)" },
 });
 // axiosRetry(client, {
