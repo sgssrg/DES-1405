@@ -21,4 +21,5 @@ jobs:
           script: |
             cd /home/${{ secrets.SSH_USERNAME }}/code/DES-1405
             git pull
-            docker compose --env-file .env.prod up -d
+            docker build --no-cache -t des-1405 .
+            docker compose --env-file .env.prod up -d --build

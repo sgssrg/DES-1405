@@ -29,6 +29,7 @@ const memeAPI = axios.create({
 
 const redditAPI = axios.create({
   baseURL: "https://www.reddit.com/r/",
+  headers: { "User-Agent": "DES-1405-Bot/1.0 (by u/anonymous)" },
 });
 // axiosRetry(client, {
 //   retries: 3, // number of retries
